@@ -372,12 +372,9 @@ should already have been set up."
 
 (defun gac--buffer-has-changes (buffer)
   "Check to see if there is any change in BUFFER."
-  (let ((file-name (convert-standard-filename
-                    (file-name-nondirectory
-                     (buffer-file-name buffer)))))
-    (not (string=
-          (shell-command-to-string (concat "git diff " file-name))
-          ""))))
+  (eq 1
+      (call-process "git" nil nil nil "diff" "--quiet" "--"
+                    (buffer-file-name buffer))))
 
 (defun gac--after-save (buffer)
   (unwind-protect
