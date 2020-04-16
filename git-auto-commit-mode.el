@@ -31,7 +31,7 @@
 
 ;; When `gac-debounce-interval' is non-nil and set to a number
 ;; representing seconds, it will only perform Git actions at that
-;; interval. That way, repeatedly saving a file will not hammer the
+;; interval.  That way, repeatedly saving a file will not hammer the
 ;; Git repository.
 
 ;;; Code:
@@ -96,51 +96,51 @@ changes made since the current file was loaded."
   :type 'boolean)
 
 (defcustom gac-shell-and " && "
-  "The syntax to use for CMD1 AND CMD2, where CMD2 should only be run if CMD1
-  is successful. For fish shell, you want to customise this to: \" ; and \"
-  instead of the default."
+  "The syntax to use for CMD1 AND CMD2, where CMD2 should only be run if CMD1 \
+is successful. For fish shell, you want to customise this to: \" ; and \"
+instead of the default."
   :tag "Join shell commands"
   :group 'git-auto-commit-mode
   :type 'string)
 
 (defcustom gac-shell-or " || "
-  "The syntax to use for CMD1 OR CMD2, where CMD2 should only be run if CMD1
-  is not successful. For fish shell, you want to customise this to: \" ; and \"
-  instead of the default."
+  "The syntax to use for CMD1 OR CMD2, where CMD2 should only be run if CMD1 \
+is not successful. For fish shell, you want to customise this to: \" ; and \"
+instead of the default."
   :tag "Join shell commands"
   :group 'git-auto-commit-mode
   :type 'string)
 
 (defcustom gac-shell-begin " { "
-  "The syntax to use for BEGIN in BEGIN CMD1; CMD2; END, where CMD2 should be
-  run after CMD1 and the whole expression return the exit code of CMD2.
-  For fish shell, you want to customise this to: \" begin \"
-  instead of the default."
+  "The syntax to use for BEGIN in BEGIN CMD1; CMD2; END, where CMD2 should be \
+run after CMD1 and the whole expression return the exit code of CMD2.
+For fish shell, you want to customise this to: \" begin \"
+instead of the default."
   :tag "Join shell commands"
   :group 'git-auto-commit-mode
   :type 'string)
 
 (defcustom gac-shell-end " ; } "
-  "The syntax to use for END in BEGIN CMD1; CMD2 END, where CMD2 should be
-  run after CMD1 and the whole expression return the exit code of CMD2.
-  For fish shell, you want to customise this to: \" ; end \"
-  instead of the default."
+  "The syntax to use for END in BEGIN CMD1; CMD2 END, where CMD2 should be \
+run after CMD1 and the whole expression return the exit code of CMD2.
+For fish shell, you want to customise this to: \" ; end \"
+instead of the default."
   :tag "Join shell commands"
   :group 'git-auto-commit-mode
   :type 'string)
 
 (defcustom gac-add-additional-flag ""
-       "Flag to add to the git add command."
-       :tag "git add flag"
-       :group 'git-auto-commit-mode
-       :type 'string)
+  "Flag to add to the ’git add’ command."
+  :tag "git add flag"
+  :group 'git-auto-commit-mode
+  :type 'string)
 
 
 (defcustom gac-debounce-interval nil
   "Debounce automatic commits to avoid hammering Git.
 
 If non-nil a commit will be scheduled to occur that many seconds
-in the future. Note that this uses Emacs timer functionality, and
+in the future.  Note that this uses Emacs timer functionality, and
 is subject to its limitations."
   :tag "Debounce interval"
   :group 'git-auto-commit-mode
@@ -155,8 +155,7 @@ It can be:
 - nil to use the default FILENAME
 - a string which is used
 - a function returning a string, called with FILENAME as
-  argument, in which case the result is used as commit message
-"
+  argument, in which case the result is used as commit message"
   :tag "Default commit message"
   :group 'git-auto-commit-mode
   :type '(choice (string :tag "Commit message")
@@ -220,7 +219,7 @@ Default to FILENAME."
       (read-string "Summary: " nil nil relative-filename))))
 
 (defun gac--current-commit (buffer)
-  "Return the current Git commit."
+  "Return the current Git commit for file for BUFFER."
   (let* ((buffer-file (buffer-file-name buffer))
          (default-directory (file-name-directory buffer-file)))
     (replace-regexp-in-string
@@ -228,23 +227,26 @@ Default to FILENAME."
      (gac--shell-command-to-string-throw "git rev-parse --verify HEAD"))))
 
 (defun gac--load-current-commit (buffer)
+  "Load current comment for file for BUFFER."
   (setq-local gac-loaded-commit (gac--current-commit buffer)))
 
 (defun gac--current-branch (buffer)
-  "Return the current Git branch."
+  "Return the current Git branch for file in BUFFER."
   (let* ((buffer-file (buffer-file-name buffer))
          (default-directory (file-name-directory buffer-file)))
     (replace-regexp-in-string "\n\\'" ""
                               (gac--shell-command-to-string-throw "git symbolic-ref --short HEAD"))))
 
 (defun gac--buffer-file-tracked (buffer)
-  "Is the current buffer's file tracked in Git?"
+  "Is the file for BUFFER tracked in Git?"
   (eq 0
       (call-process "git" nil nil nil "ls-files" "--error-unmatch"
                     (buffer-file-name buffer))))
 
 (defun gac--shell-command-throw (command)
-  "Run shell command, but raise a lisp error if the command returns nonzero.
+  "Run shell COMMAND.
+
+Raise a Lisp error if the command returns nonzero.
 
 Output and error printed to a temporary buffer."
   (let* ((buf (get-buffer-create "*gac shell command*"))
@@ -255,8 +257,8 @@ Output and error printed to a temporary buffer."
              rv command))))
 
 (defun gac--shell-command-to-string-throw (command)
-  "Run shell command and return standard output as string.
-but raise a lisp error if the command returns nonzero.
+  "Run shell COMMAND and return standard output as string.
+Raise a Lisp error if the command returns nonzero.
 
 Standard error is inserted into a temp buffer if it's generated."
   (with-output-to-string
@@ -279,7 +281,7 @@ Standard error is inserted into a temp buffer if it's generated."
         (delete-file err-file)))))
 
 (defun gac-checkout-merge-branch (buffer)
-  "Create and check out a merge branch."
+  "Create and check out a merge branch in repo of file for BUFFER."
   (setq-local gac-before-save-branch (gac--current-branch buffer))
   (setq-local gac-merge-branch (format "gac-merge-%d" (float-time)))
   (let* ((buffer-file (buffer-file-name buffer))
@@ -290,7 +292,7 @@ Standard error is inserted into a temp buffer if it's generated."
              (shell-quote-argument gac-before-save-branch)))))
 
 (defun gac-commit (buffer)
-  "Commit the current buffer's file to git."
+  "Commit the file for BUFFER to git."
   (let* ((buffer-file (buffer-file-name buffer))
          (filename (convert-standard-filename
                     (file-name-nondirectory buffer-file)))
@@ -310,7 +312,8 @@ Standard error is inserted into a temp buffer if it's generated."
              "git commit -m " (shell-quote-argument commit-msg)))))
 
 (defun gac-merge (buffer)
-  "Merge gac-merge-branch back into gac-before-save-branch."
+  "Merge gac-merge-branch back into gac-before-save-branch for repo for file \
+for BUFFER."
   (let* ((buffer-file (buffer-file-name buffer))
          (default-directory (file-name-directory buffer-file)))
     (gac--shell-command-throw
@@ -331,7 +334,7 @@ Standard error is inserted into a temp buffer if it's generated."
     (gac--load-current-commit buffer)))
 
 (defun gac-push (buffer)
-  "Push commits to the current upstream.
+  "Push commits to the current upstream in repo of file for BUFFER.
 
 This doesn't check or ask for a remote, so the correct remote
 should already have been set up."
@@ -347,6 +350,8 @@ should already have been set up."
 (defvar gac--debounce-timers (make-hash-table :test #'equal))
 
 (defun gac--debounced-save ()
+  "Debounce running ‘gac--after-save’ to run no more often than \
+‘gac-debounce-interval’."
   (let* ((actual-buffer (current-buffer))
          (current-buffer-debounce-timer (gethash actual-buffer gac--debounce-timers)))
     (unless current-buffer-debounce-timer
@@ -395,6 +400,7 @@ should already have been set up."
     (remhash buffer gac--debounce-timers)))
 
 (defun gac-kill-buffer-hook ()
+  "Hook run on killing buffer with ‘git-auto-commit-mode’ enabled."
   (when (and gac-debounce-interval
              gac--debounce-timers
              (gethash (current-buffer) gac--debounce-timers))
