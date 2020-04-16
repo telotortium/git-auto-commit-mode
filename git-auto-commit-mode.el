@@ -361,15 +361,6 @@ should already have been set up."
                             actual-buffer)
                gac--debounce-timers))))
 
-(defun gac--buffer-is-tracked (buffer)
-  "Check to see if BUFFER’s file is tracked in git."
-  (let ((file-name (convert-standard-filename
-                    (file-name-nondirectory
-                     (buffer-file-name buffer)))))
-    (not (string=
-          (shell-command-to-string (concat "git ls-files " file-name))
-          ""))))
-
 (defun gac--buffer-has-changes (buffer)
   "Check to see if there is any change in BUFFER."
   (eq 1
@@ -377,18 +368,23 @@ should already have been set up."
                     (buffer-file-name buffer))))
 
 (defun gac--after-save (buffer)
+  "Function run from ‘after-save-hook’ to commit file for BUFFER."
   (unwind-protect
       (when (and (buffer-live-p buffer)
-                 (or (and gac-automatically-add-new-files-p
-                          (not (gac--buffer-is-tracked buffer)))
-                     (gac--buffer-has-changes buffer))
                  (string=
                   "true\n"
                   (gac--shell-command-to-string-throw
                    "git rev-parse --is-inside-work-tree"))
-	         (gac--buffer-file-tracked buffer))
+                 ;; Is buffer tracked (or is adding new files enabled)?
+                 (or gac-automatically-add-new-files-p
+                     (gac--buffer-file-tracked buffer))
+                 ;; Are there changes (or is file untracked and adding new
+                 ;; files enabled)?
+                 (or (and gac-automatically-add-new-files-p
+                          (not (gac--buffer-file-tracked buffer)))
+                     (gac--buffer-has-changes buffer)))
         (gac-commit buffer)
-	(gac-merge buffer)
+        (gac-merge buffer)
         (with-current-buffer buffer
           ;; with-current-buffer required here because gac-automatically-push-p
           ;; is buffer-local
