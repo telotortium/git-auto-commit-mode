@@ -407,7 +407,8 @@ should already have been set up."
 
 (defun gac-before-save-func ()
   "Create and check out a merge branch."
-  (when (gac--buffer-file-tracked (current-buffer))
+  (when (or gac-automatically-add-new-files-p
+            (gac--buffer-file-tracked (current-buffer)))
     (gac-checkout-merge-branch (current-buffer))))
 
 (defun gac-after-save-func ()
